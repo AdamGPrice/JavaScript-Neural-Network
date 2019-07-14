@@ -2,7 +2,7 @@ class Layer {
     constructor(nodes) {
         this.nodes = nodes;
         this.values = new Matrix(this.nodes, 1);
-        this.bias = new Matrix(this.nodes, 1);
+        //this.bias = new Matrix(this.nodes, 1);
     }
 }
 
@@ -33,9 +33,12 @@ class NeuralNetwork {
         this.layers.splice(this.layers.length - 1, 0, layer);
     }
 
-    generate() {
+    generate(loadWeights) {
         for (let i = 0; i < this.layers.length - 1; i++) {
             this.weights.push(new Matrix(this.layers[i + 1].nodes, this.layers[i].nodes));
+        }
+        if (loadWeights) {
+            this.load(loadWeights);
         }
     }
 
@@ -88,6 +91,43 @@ class NeuralNetwork {
             //Ajust the weights
             this.weights[i - 1] = Matrix.add(this.weights[i - 1], weightDeltas);
             this.layers[i].value = Matrix.add(this.layers[i].values, gradient);
+        }
+    }
+
+    // Save weights
+    save(writer) {
+        for (let k = 0; k < this.weights.length; k++) {
+            let rows = this.weights[k].rows;
+            let columns = this.weights[k].columns;
+            let weights = this.weights[k].data;
+            
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < columns; j++) {
+                    if (j < columns - 1) {
+                        writer.write(weights[i][j] + ',');
+                    } else {
+                        writer.print(weights[i][j]);
+                    }
+                }
+            }
+        }
+        writer.close();
+        writer.clear();
+    }
+
+    load(loadWeights) {
+        let line = 0;
+        for (let k = 0; k < this.weights.length; k++) {
+            let rows = this.weights[k].rows;
+            let columns = this.weights[k].columns;
+            
+            for (let i = 0; i < rows; i++) {
+                let row = loadWeights[line].split(',');
+                for (let j = 0; j < columns; j++) {
+                    this.weights[k].data[i][j] = parseFloat(row[j]);
+                }
+                line++;
+            }
         }
     }
 }
